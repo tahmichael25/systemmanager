@@ -1,0 +1,71 @@
+Notes on SSM:
+..................
+Configuration management:
+-Note that things like OPSrum,NewRelic,Apache, ADJOIN and SElinux can be easily done via IAC using Cloud formation.
+But installing all packages on many nodes is subject to  mistakes,time consuming hence manual configuration.
+-SSM can help automate the above and it is AWS specific. Ansible,Chef and Puppet are 3rd parties that  can be use on the AWS platform.
+
+What is SSM?
+-A set of fully managed capabilities that enable automated configurations and ongoing management of systems at scale
+e.g patching.
+
+Prerequistes to SSM are?
+-Access control or permissions.
+Here we are talking about Authentication and Authorization, IAM role (Ec2 Profile role is created and attached to the IAM role)
+-SSM Agent.
+Here instrucstions are giving to the service via an agent to be able to do installs at scale on targets. Note that this agaent is also installed on the targets.
+-Are the instances in a public or private subnet? If they are in the private subnet, then we need to setup a connectivity  between them we need an aws VPC endpoint and
+SSM that resides outside of the VPC.
+*Note that for resources that are on premise, SSM can still help you do that with the addtition of systems management activiation keys just like giving you
+access keys and secret access keys.(Hybrid activiation.)
+
+************
+Story
+*
+I have use systems manager to automate the confiuration and ongoing management of systems at scale and 
+I have liverage some capabilities like the below but also there are prerequisites as above
+
+What are the capabilities?
+-Run Command.
+tasks here are known as simple administrative tasks that are performed at scale  to systems with the help of run commands without 
+human interventions like sshing to nodes e.g netflix and Nasa
+-Automation.
+It helps to automate tasks beyond the systems e.g. patch or do backups of your EBS, DB or nodes across your AWS envirnoment
+like taking snapshots of your AMI in a single account to all other accounts. Run command or Patch manager cannot do this. 
+This automation is an enterprise utility or service.(Organizational account)
+-Session Manager.
+Here without ssh or key pairs you can gain access to the shell.
+-Inventory.
+This discovers all the configurations you  have in your systems and reports it back to the dashboard.
+-State Manager.
+It is important for compliance. If you want a desire state for an EC2 to be configure but also you can build an audit and remediation plan
+too. If a system is not in compliance, then bring them to it e.g enable SElinux, start and enable apache. etc. note that you don't need Ansible here
+but a script to perform the task could be with the help of a cron job.
+-Maintenance Windows.
+Here there is a date and time  designed to integrate seemlessly especailly during patching.
+..................................................................................................
+*Note that Resource group is one Capability within SSM but has been removed and its being managed as seperate service within Aws.
+But we can make use of it to patch out systems by groups.
+
+.................................................
+#!/bin/bash
+sudo mkdir /tmp/ssm
+cd /tmp/ssm
+sudo yum install -y
+https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm
+sudo systemctl enable amazon-ssm-agent
+sudo systemctl start amazon-ssm-agent
+sudo systemctl status amazon-ssm-agent
+###########################################################
+#!/bin/bash
+cd /tmp
+sudo yum install -y
+https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm
+sudo systemctl stop amazon-ssm-agent
+# edit the code, id and region in the command below
+sudo amazon-ssm-agent -register -code "JKGTDSXrcZbbjjj8lieVpDA" -id
+"533f0313-486c-498b-84321-7382916ca394" -region "us-west-2"
+sudo systemctl start amazon-ssm-agent
+sudo systemctl enable amazon-ssm-agent
+sudo systemctl status amazon-ssm-agent
+
